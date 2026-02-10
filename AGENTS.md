@@ -14,7 +14,7 @@ This repository is a Go TWAMP implementation with strict RFC semantics and stron
 
 ## Toolchain and environment
 
-- Go version: `1.25.x` (module uses `go 1.25.7`).
+- Go version: `1.25.x` (module uses `go 1.25.6`).
 - Module path: `github.com/ncode/twamp`.
 - Main packages: `client`, `server`, `messages`, `common`, `crypto`, `metrics`, `logging`.
 - Integration tests: `test/integration`.
