@@ -3,7 +3,7 @@
 We welcome well‑engineered, RFC‑compliant contributions. Keep changes small, focused, and production‑ready.
 
 ## Prerequisites
-- Go 1.25.7 or newer
+- Go 1.25.6 or newer
 - GitHub account with a fork of this repo
 - Platform(s) for testing platform‑specific code as applicable (Linux/BSD/Windows)
 
