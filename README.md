@@ -5,6 +5,7 @@ RFC-compliant TWAMP implementation in Go for active network performance measurem
 [![CI](https://github.com/ncode/twamp/actions/workflows/go.yml/badge.svg)](https://github.com/ncode/twamp/actions/workflows/go.yml)
 [![Go Version](https://img.shields.io/badge/go-1.25%2B-00ADD8?logo=go)](https://go.dev/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![codecov](https://codecov.io/gh/ncode/twamp/graph/badge.svg?token=G8V4GMDK0M)](https://codecov.io/gh/ncode/twamp)
 
 ## Table of contents
 
