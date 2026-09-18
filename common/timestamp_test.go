@@ -180,6 +180,14 @@ func TestDurationBetween(t *testing.T) {
 	}
 }
 
+func TestTWAMPTimestampDurationPreservesFraction(t *testing.T) {
+	got := (TWAMPTimestamp{Seconds: 2, Fraction: 0x80000000}).Duration()
+	want := 2500 * time.Millisecond
+	if got != want {
+		t.Fatalf("Duration() = %v, want %v", got, want)
+	}
+}
+
 // TestDurationBetweenUnderflow specifically tests the underflow path in DurationBetween
 func TestDurationBetweenUnderflow(t *testing.T) {
 	// Test case where end.Fraction < start.Fraction, triggering the underflow path

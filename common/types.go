@@ -35,8 +35,12 @@ const (
 	CmdRequestTWSessionIndividual = 6 // RFC 5938 Section 3.1
 
 	// RFC 6038: Reflect Octets and Symmetrical Size modes
-	ModeReflectOctets   = 16 // RFC 6038 Section 3
-	ModeSymmetricalSize = 32 // RFC 6038 Section 4
+	// RFC 5938 reserves bit value 16 for Individual Session Control.
+	// RFC 6038 assigns the following values:
+	//   32: Reflect Octets
+	//   64: Symmetrical Size
+	ModeReflectOctets   = 32 // RFC 6038 Section 4.1 / IANA registry
+	ModeSymmetricalSize = 64 // RFC 6038 Section 4.1 / IANA registry
 
 	// RFC 5618: Mixed Security Mode
 	ModeMixed = 8 // RFC 5618 Section 3

@@ -163,11 +163,11 @@ func TestRequestTWSession_Unmarshal_EdgeCases(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name:        "non-zero in lower bits of IPVN byte",
+			name:        "non-zero in upper MBZ bits of IPVN byte",
 			includeHMAC: false,
 			data: func() []byte {
 				buf := make([]byte, 112)
-				buf[1] = 0x0F // Non-zero in MBZ bits
+				buf[1] = 0xF4 // Non-zero in MBZ bits; IPVN = 4
 				return buf
 			}(),
 			expectError: true,
@@ -177,7 +177,7 @@ func TestRequestTWSession_Unmarshal_EdgeCases(t *testing.T) {
 			includeHMAC: false,
 			data: func() []byte {
 				buf := make([]byte, 112)
-				buf[1] = 0x50 // IPVN = 5 (invalid)
+				buf[1] = 0x05 // IPVN = 5 (invalid)
 				return buf
 			}(),
 			expectError: true,
@@ -208,7 +208,7 @@ func TestRequestTWSession_Unmarshal_EdgeCases(t *testing.T) {
 			data: func() []byte {
 				buf := make([]byte, 112)
 				buf[0] = 5    // Command
-				buf[1] = 0x40 // IPVN = 4
+				buf[1] = 0x04 // IPVN = 4
 				return buf
 			}(),
 			expectError: false,
@@ -219,7 +219,7 @@ func TestRequestTWSession_Unmarshal_EdgeCases(t *testing.T) {
 			data: func() []byte {
 				buf := make([]byte, 112)
 				buf[0] = 5    // Command
-				buf[1] = 0x60 // IPVN = 6
+				buf[1] = 0x06 // IPVN = 6
 				return buf
 			}(),
 			expectError: false,
@@ -545,7 +545,7 @@ func TestRequestTWSession_RFC5357_NumSlots_Validation(t *testing.T) {
 			// Create a valid base request
 			buf := make([]byte, 112)
 			buf[0] = 5    // Command
-			buf[1] = 0x40 // IPVN = 4
+			buf[1] = 0x04 // IPVN = 4
 			// Set NumSlots at offset 4-7
 			binary.BigEndian.PutUint32(buf[4:8], tt.numSlots)
 			// NumPackets at offset 8-11 (leave as 0)
@@ -600,7 +600,7 @@ func TestRequestTWSession_RFC5357_NumPackets_Validation(t *testing.T) {
 			// Create a valid base request
 			buf := make([]byte, 112)
 			buf[0] = 5    // Command
-			buf[1] = 0x40 // IPVN = 4
+			buf[1] = 0x04 // IPVN = 4
 			// NumSlots at offset 4-7 (leave as 0)
 			// Set NumPackets at offset 8-11
 			binary.BigEndian.PutUint32(buf[8:12], tt.numPackets)
@@ -703,7 +703,7 @@ func TestRequestTWSession_TypeP_DSCP_Validation(t *testing.T) {
 			// Create a valid base request
 			buf := make([]byte, 112)
 			buf[0] = 5    // Command
-			buf[1] = 0x40 // IPVN = 4
+			buf[1] = 0x04 // IPVN = 4
 			// Set TypePDescriptor at offset 84-87
 			binary.BigEndian.PutUint32(buf[84:88], tt.descriptor)
 
@@ -771,7 +771,7 @@ func TestRequestTWSession_PaddingLength_Validation(t *testing.T) {
 			// Create a valid base request
 			buf := make([]byte, 112)
 			buf[0] = 5    // Command
-			buf[1] = 0x40 // IPVN = 4
+			buf[1] = 0x04 // IPVN = 4
 			// Set PaddingLength at offset 64-67
 			binary.BigEndian.PutUint32(buf[64:68], tt.paddingLength)
 
@@ -803,7 +803,7 @@ func TestRequestTWSession_Combined_RFC5357_Validations(t *testing.T) {
 			name: "All fields valid",
 			setupBuffer: func(buf []byte) {
 				buf[0] = 5    // Command
-				buf[1] = 0x40 // IPVN = 4
+				buf[1] = 0x04 // IPVN = 4
 				// NumSlots = 0, NumPackets = 0 (already zero)
 				// PaddingLength = 100
 				binary.BigEndian.PutUint32(buf[64:68], 100)
@@ -816,7 +816,7 @@ func TestRequestTWSession_Combined_RFC5357_Validations(t *testing.T) {
 			name: "NumSlots non-zero fails first",
 			setupBuffer: func(buf []byte) {
 				buf[0] = 5    // Command
-				buf[1] = 0x40 // IPVN = 4
+				buf[1] = 0x04 // IPVN = 4
 				binary.BigEndian.PutUint32(buf[4:8], 1) // NumSlots = 1 (invalid)
 			},
 			expectError:   true,
@@ -826,7 +826,7 @@ func TestRequestTWSession_Combined_RFC5357_Validations(t *testing.T) {
 			name: "NumPackets non-zero with NumSlots zero",
 			setupBuffer: func(buf []byte) {
 				buf[0] = 5    // Command
-				buf[1] = 0x40 // IPVN = 4
+				buf[1] = 0x04 // IPVN = 4
 				// NumSlots = 0
 				binary.BigEndian.PutUint32(buf[8:12], 1) // NumPackets = 1 (invalid)
 			},
@@ -837,7 +837,7 @@ func TestRequestTWSession_Combined_RFC5357_Validations(t *testing.T) {
 			name: "Excessive PaddingLength",
 			setupBuffer: func(buf []byte) {
 				buf[0] = 5    // Command
-				buf[1] = 0x40 // IPVN = 4
+				buf[1] = 0x04 // IPVN = 4
 				binary.BigEndian.PutUint32(buf[64:68], 10000) // PaddingLength too large
 			},
 			expectError:   true,
@@ -847,7 +847,7 @@ func TestRequestTWSession_Combined_RFC5357_Validations(t *testing.T) {
 			name: "Invalid TypeP descriptor",
 			setupBuffer: func(buf []byte) {
 				buf[0] = 5    // Command
-				buf[1] = 0x40 // IPVN = 4
+				buf[1] = 0x04 // IPVN = 4
 				binary.BigEndian.PutUint32(buf[84:88], 0x01000000) // Non-zero padding byte
 			},
 			expectError:   true,

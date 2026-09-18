@@ -235,7 +235,7 @@ func (ss *ServerStart) Unmarshal(data []byte) error {
 // RequestTWSession represents a request for a new TWAMP test session
 type RequestTWSession struct {
 	Command         uint8
-	MBZ1            uint8 // Must be zero (lower nibble of byte 1)
+	MBZ1            uint8 // Must be zero (upper nibble of byte 1)
 	IPVN            uint8
 	ConfSender      uint8
 	ConfReceiver    uint8
@@ -267,9 +267,9 @@ func (rts *RequestTWSession) Marshal(includeHMAC bool) ([]byte, error) {
 	// Command (1 byte)
 	buf[0] = rts.Command
 
-	// MBZ, IPVN (1 byte total) - RFC 5357 Section 3.5
-	// Bits 0-3: MBZ, Bits 4-7: IPVN
-	buf[1] = (rts.IPVN << 4)
+	// MBZ, IPVN (1 byte total) - RFC 5357 Section 3.5.
+	// Bits 7-4: MBZ, bits 3-0: IPVN.
+	buf[1] = rts.IPVN & 0x0F
 
 	// ConfSender (1 byte)
 	buf[2] = rts.ConfSender
@@ -332,12 +332,12 @@ func (rts *RequestTWSession) Unmarshal(data []byte, includeHMAC bool) error {
 	// Extract Command
 	rts.Command = data[0]
 
-	// Extract MBZ, IPVN - RFC 5357 Section 3.5
-	// Bits 0-3: MBZ (must be zero), Bits 4-7: IPVN
-	if data[1]&0x0F != 0 {
+	// Extract MBZ, IPVN - RFC 5357 Section 3.5.
+	// Bits 7-4: MBZ (must be zero), bits 3-0: IPVN.
+	if data[1]&0xF0 != 0 {
 		return common.ErrInvalidMBZ
 	}
-	rts.IPVN = (data[1] >> 4) & 0x0F
+	rts.IPVN = data[1] & 0x0F
 	if rts.IPVN != 4 && rts.IPVN != 6 {
 		return common.ErrInvalidIPVN
 	}

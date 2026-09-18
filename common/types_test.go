@@ -119,6 +119,18 @@ func TestModeToString(t *testing.T) {
 	}
 }
 
+func TestRFC6038ModeValues(t *testing.T) {
+	if ModeReflectOctets != 32 {
+		t.Fatalf("RFC 6038 Reflect Octets mode = %d, want 32", ModeReflectOctets)
+	}
+	if ModeSymmetricalSize != 64 {
+		t.Fatalf("RFC 6038 Symmetrical Size mode = %d, want 64", ModeSymmetricalSize)
+	}
+	if ModeIndividual != 16 {
+		t.Fatalf("RFC 5938 Individual Session mode = %d, want 16", ModeIndividual)
+	}
+}
+
 func TestValidateRequestedMode(t *testing.T) {
 	tests := []struct {
 		name    string

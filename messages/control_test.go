@@ -293,9 +293,28 @@ func TestRequestTWSessionRoundTrip(t *testing.T) {
 func TestRequestTWSessionMBZError(t *testing.T) {
 	rts := RequestTWSession{}
 	data, _ := rts.Marshal(false)
-	data[1] = 0x0F // Set MBZ bits in IPVN byte
+	data[1] = 0xF4 // Set MBZ bits while retaining IPVN = 4
 	if err := rts.Unmarshal(data, false); err != common.ErrInvalidMBZ {
 		t.Fatalf("expected ErrInvalidMBZ, got %v", err)
+	}
+}
+
+func TestRequestTWSessionIPVNUsesLowNibble(t *testing.T) {
+	rts := RequestTWSession{Command: common.CmdRequestTWSession, IPVN: 4}
+	data, err := rts.Marshal(false)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	if data[1] != 0x04 {
+		t.Fatalf("IPVN byte = 0x%02x, want 0x04", data[1])
+	}
+
+	var parsed RequestTWSession
+	if err := parsed.Unmarshal(data, false); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if parsed.IPVN != 4 {
+		t.Fatalf("parsed IPVN = %d, want 4", parsed.IPVN)
 	}
 }
 

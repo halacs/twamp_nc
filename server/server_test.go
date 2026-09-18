@@ -5307,6 +5307,47 @@ func TestUnauthReceiverAllowlist(t *testing.T) {
 	}
 }
 
+func TestUnauthReceiverZeroUsesControlLocalAddress(t *testing.T) {
+	srv, err := NewServer(ServerConfig{
+		ListenAddress:  "127.0.0.1:0",
+		SupportedModes: common.ModeUnauthenticated,
+		PortRange:      [2]uint16{20000, 20010},
+	})
+	if err != nil {
+		t.Fatalf("Failed to create server: %v", err)
+	}
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("Failed to create listener: %v", err)
+	}
+	t.Cleanup(func() { listener.Close() })
+
+	clientConn, err := net.Dial("tcp", listener.Addr().String())
+	if err != nil {
+		t.Fatalf("Failed to connect test client: %v", err)
+	}
+	t.Cleanup(func() { clientConn.Close() })
+
+	serverConn, err := listener.Accept()
+	if err != nil {
+		t.Fatalf("Failed to accept test connection: %v", err)
+	}
+	t.Cleanup(func() { serverConn.Close() })
+
+	cc := &controlConnection{
+		conn:        serverConn,
+		controlMode: common.ModeUnauthenticated,
+		testMode:    common.ModeUnauthenticated,
+		sessions:    make(map[common.SessionID]*TestSession),
+	}
+	request := &messages.RequestTWSession{IPVN: 4}
+
+	if !srv.isUnauthReceiverAllowed(cc, request) {
+		t.Fatal("zero Receiver Address should use the local control-connection address")
+	}
+}
+
 // failingWriter is a mock net.Conn that always fails on Write()
 // Used for testing error handling in functions that write to connections
 type failingWriter struct {

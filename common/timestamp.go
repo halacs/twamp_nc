@@ -67,6 +67,15 @@ func (ts TWAMPTimestamp) ToTime() time.Time {
 	return ts.ToTimeWithReference(time.Now())
 }
 
+// Duration converts an NTP timestamp-shaped interval to a Go duration.
+// Request-TW-Session.Timeout is an interval, not an absolute timestamp, but
+// it uses the same 32.32 wire representation. Keep the fractional part when
+// converting it; dropping it changes the RFC 5357 post-Stop grace period.
+func (ts TWAMPTimestamp) Duration() time.Duration {
+	return time.Duration(ts.Seconds)*time.Second +
+		time.Duration(float64(ts.Fraction)*FracToNano)*time.Nanosecond
+}
+
 // ToTimeWithReference converts a TWAMPTimestamp to a Go time.Time using a reference time
 // to resolve NTP era ambiguity. This is necessary because NTP's 32-bit seconds field
 // wraps around every ~136 years (RFC 5905 Section 4).

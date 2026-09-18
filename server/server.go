@@ -728,7 +728,10 @@ func normalizeIP(ip net.IP) net.IP {
 	return ip.To16()
 }
 
-func peerIP(addr net.Addr) net.IP {
+func connectionIP(addr net.Addr) net.IP {
+	if addr == nil {
+		return nil
+	}
 	if tcpAddr, ok := addr.(*net.TCPAddr); ok {
 		return tcpAddr.IP
 	}
@@ -800,12 +803,27 @@ func (s *Server) isAllowlisted(ip net.IP) bool {
 }
 
 func (s *Server) isUnauthReceiverAllowed(cc *controlConnection, request *messages.RequestTWSession) bool {
+	if cc == nil || cc.conn == nil || request == nil {
+		return false
+	}
+
 	receiver := receiverIP(request)
 	if receiver == nil {
 		return false
 	}
 
-	peerAddr := peerIP(cc.conn.RemoteAddr())
+	// RFC 5357 Section 3.5 permits Sender Address and Receiver Address to
+	// be zero. In that case the addresses from the TWAMP-Control exchange
+	// are used for the TWAMP-Test packets. For the receiver, that means the
+	// local endpoint of this control connection, not an arbitrary address.
+	if receiver.IsUnspecified() {
+		receiver = normalizeIP(connectionIP(cc.conn.LocalAddr()))
+		if receiver == nil || receiver.IsUnspecified() {
+			return false
+		}
+	}
+
+	peerAddr := connectionIP(cc.conn.RemoteAddr())
 	if peerAddr != nil && normalizeIP(peerAddr).Equal(receiver) {
 		return true
 	}
@@ -1028,7 +1046,9 @@ func (s *Server) handleRequestTWSession(cc *controlConnection, cmdData []byte) e
 		reflectorPort:   reflectorPort,
 		senderPort:      request.SenderPort,
 		mode:            cc.testMode, // RFC 5618: Use test mode, not negotiated mode
-		timeout:         time.Duration(request.Timeout.Seconds) * time.Second,
+		// Timeout is a 32.32 NTP-format interval. Preserve the fractional
+		// seconds; RFC 5357 uses it as the post-Stop reflection grace period.
+		timeout:         request.Timeout.Duration(),
 		dscp:            dscp,
 		stopChan:        make(chan struct{}),
 		reflectorDone:   make(chan struct{}),
@@ -1962,7 +1982,9 @@ func (s *Server) handleRequestTWSessionIndividual(cc *controlConnection, cmdData
 		reflectorPort:   reflectorPort,
 		senderPort:      request.SenderPort,
 		mode:            cc.testMode, // RFC 5618: Use test mode, not negotiated mode
-		timeout:         time.Duration(request.Timeout.Seconds) * time.Second,
+		// Timeout is a 32.32 NTP-format interval. Preserve the fractional
+		// seconds; RFC 5357 uses it as the post-Stop reflection grace period.
+		timeout:         request.Timeout.Duration(),
 		dscp:            dscp,
 		stopChan:        make(chan struct{}),
 		reflectorDone:   make(chan struct{}),
